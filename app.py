@@ -1,46 +1,16 @@
-from flask import Flask, render_template, request, redirect, url_for
-import datetime
-from collections import defaultdict
+from flask import Flask
+from routes import pages
+from pymongo import MongoClient
+import os
+from dotenv import load_dotenv
 
-app = Flask(__name__)
-habits = ["Coding","Programming"]
-completions = defaultdict(list)
+load_dotenv()
 
-@app.context_processor
-def create_date_range():
-    def date_range(start: datetime.date):
-        dates = [start + datetime.timedelta(days=diff) for diff in range(-3,4)]
-        return dates
-    return {"date_range": date_range}
+def create_app():
+    app = Flask(__name__)
+    app.register_blueprint(pages)
 
-@app.route('/')
-def index():
-    date_str = request.args.get("date")
-    if date_str:
-        selected_date = datetime.date.fromisoformat(date_str)
-    else:
-        selected_date = datetime.date.today()
-
-    return render_template('index.html', 
-                           habits=habits, 
-                           title = "Habit Tracker - Home", 
-                           selected_date=selected_date,
-                           completions = completions[selected_date]
-                           )
-
-@app.route('/add', methods=["GET", "POST"])
-def add_habit():
-    if request.method == "POST":
-        habits.append(request.form.get('habit'))
-    return render_template('add_habit.html', 
-                           title = 'Habit Tracker - Add Habit',
-                           selected_date = datetime.date.today())
-
-@app.route("/complete", methods=['POST'])
-def complete():
-    date_string = request.form.get('date')
-    habit = request.form.get('habitName')
-    date = datetime.date.fromisoformat(date_string)
-    completions[date].append(habit)
-
-    return redirect(url_for('index', date= date_string))
+    client = MongoClient(os.environ.get("MONGO_DB_URI"))
+    app.db = client.get_default_database()
+    
+    return app

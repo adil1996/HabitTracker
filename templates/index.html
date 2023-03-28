@@ -2,21 +2,21 @@
 {% block main_content %}
     <section class="habit-list">
         {% for habit in habits %}
-            {% set completed = habit in completions %}
+            {% set completed = habit["_id"] in completions %}
                 {% if completed %}
                     <div class="habit completed">
                         <p class="habit__name">
-                            {{habit}}
+                            {{habit["name"]}}
                         </p>
                         <img class="habit__icon" src="../static/checkbox.svg"/>
                     </div>
                 {% else %}
                     <div class="habit">
-                        <form method="POST" class="habit__form" action="{{ url_for('complete') }}">
-                            <input type="hidden" name="habitName" value="{{ habit }}"/>
+                        <form method="POST" class="habit__form" action="{{ url_for('habits.complete') }}">
+                            <input type="hidden" name="habitId" value="{{ habit['_id'] }}"/>
                             <input type="hidden" name="date" value="{{ selected_date }}"/>
                             <button type="submit" class="habit__button">
-                                {{ habit }}
+                                {{ habit["name"] }}
                             </button>    
                         </form>
                     </div>
